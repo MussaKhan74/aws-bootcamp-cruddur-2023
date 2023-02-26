@@ -99,3 +99,52 @@ CMD ["node", "index.js"]
 
  ## Launch an EC2 instance that has docker installed, and pull a container to demonstrate you can run your own docker processes
  - Open AWS Console on your Non-Root User
+ - Search for the EC2 in search Bar & open it
+ - On the left side bar it will show instances, click on that.
+ - It will open a screen where you put your instance name, the distribution system you want this instance to use, SSH and other settings
+
+![AWS EC2 SECTION](../_docs/assets/aws-ec2-section.JPG)
+
+ - After that it will open up the dashboard / list of the running instances which will further show the ips and settings of the instances
+
+ ![AWS EC2 INSTANCE DASHBOARD](../_docs/assets/aws-ec2-instance-dashboard.JPG)
+ 
+ - To connect to this instance from the AWS Cli, need to click on the connect button.
+
+ ![EC2 INSTANCE AWS CLI](../_docs/assets/ec2-instance-aws-cli.JPG)
+
+ - Now in this instance we need to install the docker by the following command;
+ ```EC2 INSTANCE
+
+ yum install docker* -y
+
+ ``` 
+ ![DOCKER INSTALL COMMAND](../_docs/assets/docker-install-cmd.JPG)
+
+ - After the installation you can try to run the following command in cli to check if the docker is successfully installed or not;
+ ```
+ docker -v
+ ```
+![DOCKER VERSION CHECK](../_docs/assets/docker-version-check.JPG)
+
+ - By running "docker -v" it doesn't mean your docker is already running on the instance and you can check that by any docker command e.g 
+
+ ```
+docker ps
+ ```
+
+![DOCKER RUNNING CHECK](../_docs/assets/docker-running-check.JPG)
+
+- It will give you an error stating that docker daemon is not running up yet.
+- To run the docker on this instance we need to run the following commands;
+
+```
+systemctl start docker (It's for running the docker)
+systemctl enable docker (It will push it as a service in the instance so even you reboot the instance it will start up on its own)
+```
+
+![DOCKER STARTUP](../_docs/assets/docker-startup.JPG)
+
+- Now if you type "docker ps" or any other command in the cli it will work perfectly fine for you.
+
+![DOCKER COMMANDS WORKING](../_docs/assets/docker-cmd-working.JPG)
