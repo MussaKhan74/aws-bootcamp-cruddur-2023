@@ -4,6 +4,10 @@ from flask_cors import CORS, cross_origin
 import os
 import sys
 
+
+# COGNITO TOKEN VERIFICATION
+from lib.cognito_jwt_token import CognitoJwtToken, extract_access_token, TokenVerifyError
+
 from services.home_activities import *
 from services.notifications_activities import *
 from services.user_activities import *
@@ -57,6 +61,13 @@ tracer = trace.get_tracer(__name__)
 
 
 app = Flask(__name__)
+
+# COGNITO TOKEN
+cognito_jwt_token = CognitoJwtToken(
+  user_pool_id=os.getenv("AWS_COGNITO_USER_POOL_ID"), 
+  user_pool_client_id=os.getenv("AWS_COGNITO_USER_POOL_CLIENT_ID"),
+  region=os.getenv("AWS_DEFAULT_REGION")
+)
 
 
 # X-RAY IN APP SETTINGS
@@ -157,7 +168,21 @@ def data_home():
 
   # FOR CLOUD WATCH
   # data = HomeActivities.run(logger=LOGGER)
-  data = HomeActivities.run()
+
+  # JWT TOKEN EXTRACTION
+  access_token = extract_access_token(request.headers)
+  try:
+    claims = cognito_jwt_token.verify(access_token)
+    # authenicatied request
+    app.logger.debug("authenicated")
+    app.logger.debug(claims)
+    app.logger.debug(claims['username'])
+    data = HomeActivities.run(cognito_user_id=claims['username'])
+  except TokenVerifyError as e:
+    # unauthenicatied request
+    app.logger.debug(e)
+    app.logger.debug("unauthenicated")
+    data = HomeActivities.run()
   return data, 200
 
 @app.route("/api/activities/notifications", methods=['GET'])
