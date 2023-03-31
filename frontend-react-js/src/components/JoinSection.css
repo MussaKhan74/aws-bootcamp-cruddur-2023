@@ -1,7 +1,7 @@
 .join {
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: #00000038;
   border-radius: 8px;
   margin-top: 24px;
 }
@@ -37,14 +37,26 @@
   font-weight: 600;
   text-align: center;
   margin-top: 24px;
+  transition: ease-in-out 0.4s;
+}
+
+.join-content a.action:hover{
+  background: #7300c5;
 }
 
 .join-content a.subaction {
-  color: rgba(149,0,255,1);
+  color: white;
   text-align: center;
   text-decoration: none;
   display: block;
-  padding: 12px 0px;
+  padding: 16px 0px;
   margin-top: 12px;
   font-size: 16px;
+  transition: ease-in-out 0.4s;
+}
+
+
+.join-content a.subaction:hover {
+ background: #211d4d;
+ border-radius: 999px;
 }
