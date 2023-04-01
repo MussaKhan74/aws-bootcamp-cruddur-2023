@@ -93,5 +93,3 @@ class HomeActivities:
       return json[0]
       # return results
 
-
-postgresql://CruddurRoot:CruddurDbPassword123@cruddur-db-instance.cknnslnpfvvr.us-east-1.rds.amazonaws.com/cruddur
