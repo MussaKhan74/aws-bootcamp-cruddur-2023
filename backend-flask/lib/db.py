@@ -13,7 +13,6 @@ class Db:
     pathing[-1] = pathing[-1] + ".sql"
 
     template_path = os.path.join(*pathing)
-
     green = '\033[92m'
     no_color = '\033[0m'
     print("\n")
