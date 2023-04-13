@@ -11,7 +11,7 @@ printf "${CYAN}== ${LABEL}${NO_COLOR}\n"
 # GETTING EXACT PATH 
 bin_path="$(realpath .)/bin"
 
-source "$bin_path/db-drop"
-source "$bin_path/db-create"
-source "$bin_path/db-schema-load"
-source "$bin_path/db-seed"
+source "$bin_path/drop"
+source "$bin_path/create"
+source "$bin_path/schema-load"
+source "$bin_path/seed"

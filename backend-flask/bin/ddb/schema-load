@@ -1,20 +1,3 @@
-# Week 5 — DynamoDB and Serverless Caching
-
--- Renaming and relocating the scripts files
--- adding boto3 in requirements.txt file
--- installing the boto3 by using command 
-    "pip install -r requirements.txt"
--- uncomment the dynanmodb from the docker-compose
--- create other few bash files for dynamoDb in "backend-flask/bin/ddb"
--- updated the path of update-sg-rule in "gitpod.yml" file.
-
-Reference for creating table:
-https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb/client/create_table.html
-
-
--- first file which is created is 
-    "schema-load"
-```
 #!/usr/bin/env python3
 
 
@@ -67,7 +50,3 @@ response = ddb.create_table(
 )
 
 print(response)
-```
-
-
-
