@@ -9,7 +9,7 @@ LABEL="db-setup"
 printf "${CYAN}== ${LABEL}${NO_COLOR}\n"
 
 # GETTING EXACT PATH 
-bin_path="$(realpath .)/bin"
+bin_path="$(realpath .)/bin/db"
 
 source "$bin_path/drop"
 source "$bin_path/create"
