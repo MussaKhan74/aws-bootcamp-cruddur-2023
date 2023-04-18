@@ -449,3 +449,21 @@ MessageForm.js <--Line.25
 
 - Fixed Issue: In seed.sql we had mockup data of andrew and bayko which was causing issue with script update_cognito_user_ids which was only running it for my original one user already created in the cognito pool connected to rds. To fix that I had to signup with second email address and I put the data of both emails into seed.sql file which helped me out to run the update_cognito_user_ids script and it was able to append the "MOCK" data.
 
+- FIXED BUG: AWS_ENDPOINT_URL: "http://dynamodb-local:8000" | It was missing from the docker-compose file which was throwing this error in the backend
+
+```
+raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found
+```
+
+- UPDATE: changing the seed file data to match the seed.sql data for the db e.g. 
+
+``` bin/ddb/seed
+users = db.query_array_json(sql,{
+    'my_handle':  'markeloof',
+    'other_handle': 'mussa'
+  })
+  my_user    = next((item for item in users if item["handle"] == 'markeloof'), None)
+  other_user = next((item for item in users if item["handle"] == 'mussa'), None)
+```
+
