@@ -2,7 +2,8 @@
 INSERT INTO public.users (display_name, email, handle, cognito_user_id)
 VALUES
   ('Mussa Khan Shaukat','MarkeLoof.com' , 'markeloof' ,'MOCK'),
-  ('mks', 'mussakhanshaukat@gmail.com' , 'mussa' ,'MOCK');
+  ('mks', 'mussakhanshaukat@gmail.com' , 'mussa' ,'MOCK'),
+  ('Londo Mollari', 'lmollari@centari.com', 'londo', 'MOCK');
  
 
 INSERT INTO public.activities (user_uuid, message, expires_at)

@@ -13,7 +13,7 @@ export default function DesktopSidebar(props) {
   ]
 
   const users = [
-    {"display_name": "Andrew Brown", "handle": "andrewbrown"}
+    {"display_name": "Mussa Khan Shaukat", "handle": "markeloof"}
   ]
 
   let trending;
