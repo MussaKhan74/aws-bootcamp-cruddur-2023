@@ -721,3 +721,6 @@ class UsersShort:
     })
     return results
 ```
+
+- FIX: datetime was not working from the list-conversations script. So I had to update it accordingly like imported "import datetime" and added "year = str(datetime.datetime.now().year)" at <--Line.13>
+Ref: https://stackoverflow.com/questions/1133147/how-to-extract-the-year-from-a-python-datetime-object
