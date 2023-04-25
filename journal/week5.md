@@ -724,3 +724,33 @@ class UsersShort:
 
 - FIX: datetime was not working from the list-conversations script. So I had to update it accordingly like imported "import datetime" and added "year = str(datetime.datetime.now().year)" at <--Line.13>
 Ref: https://stackoverflow.com/questions/1133147/how-to-extract-the-year-from-a-python-datetime-object
+
+
+## Week 5 DynamoDB Stream
+
+Run docker-compose up command in cli.
+Run backend-flask/bin/ddb/schema-load prod command in cli to create dyanmodb instance in AWS .
+
+Than go to Tables in DynamoDb section over AWS Dashboard.
+Go to your cruddur-messages table > Exports & Streams.
+Turn "on" the DynamoDb Stream and select the attribute "new image".
+
+After that we will go to the VPC Section > End points > Hit Create New.
+After Creating the VPC, we will create lambda function.
+
+In Lambda Page, Click on functions on left side bar, than hit create function with name "cruddur-messaging-stream" and create it.
+
+After deploying your Lambda code, go to configuration > permissions > hit "role name" > Add Permission > Attach Policies > Search "AWSLambdaInvocation-DynamoDB" and add it to permissions
+
+- Note: We dropped the above created cruddur-messages from dynamoDb because we updated the './bin/ddb/schema-load' file.
+
+Rerun the 'backend-flask/bin/ddb/schema-load prod' file.
+It will create the "cruddur-messages" again inside the dynamodb on AWS dashboard with updated settings.
+- Probably need to turn on the stream again on it because we created it again.
+
+After that scroll down on the "cruddur-messages" export and streams section and you will see create trigger and hit that. 
+Select your lambda function "cruddur-messaging-stream" and hit create trigger.
+
+Now open your frontend app and try to send new short message of the already created another user in your cognito which would be saved in the RDS. It will show that message.
+
+- Note: Also add new permission policy "AmazonDynamoDBFullAccess"
