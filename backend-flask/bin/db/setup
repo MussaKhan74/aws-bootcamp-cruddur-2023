@@ -1,0 +1,15 @@
+#! /usr/bin/bash
+
+# ADDING COLOR 
+CYAN='\033[1;36m'
+NO_COLOR='\033[0m'
+LABEL="db-setup"
+printf "${CYAN}== ${LABEL}${NO_COLOR}\n"
+
+# GETTING EXACT PATH 
+bin_path="$(realpath .)/bin/db"
+
+source "$bin_path/drop"
+source "$bin_path/create"
+source "$bin_path/schema-load"
+source "$bin_path/seed"
