@@ -118,10 +118,16 @@ cors = CORS(
 #     return response
 
 # ROLLBAR TEST ENDPOINT
-@app.route('/rollbar/test')
-def rollbar_test():
-    rollbar.report_message('Hello World!', 'warning')
-    return "Hello World!"
+# We commented out rollbar for production because we won't need it
+# @app.route('/rollbar/test')
+# def rollbar_test():
+#     rollbar.report_message('Hello World!', 'warning')
+#     return "Hello World!"
+
+# FLASK APP HEALTH CHECK
+@app.route('/api/health-check')
+def health_check():
+  return {'success': True}, 200
 
 @app.route("/api/message_groups", methods=['GET'])
 def data_message_groups():
