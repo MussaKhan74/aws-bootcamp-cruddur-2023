@@ -120,5 +120,71 @@ docker push $ECR_PYTHON_URL:3.10-slim-buster
 
 ![result of ecr-python-image-push-result](../_docs/assets/ecr-python-image-push-result.JPG)
 
+- we are going to update our dockerfile for backend-flask app so it can pull the python image from ECR
 
+- if we run the docker compose up it will give us error because we already have the python image already so we might need to remove it by running 
+
+``` "run these commands in cli to remove docker image"
+docker images rm "image-name:tag"
+
+"to confirm run:"
+
+docker images
+```
+
+- now we will will run our docker-copmpose file by
+
+``` "run this command in cli to run docker-compose"
+docker compose up backend-flask db 
+# We can specify after docker compose up to which service to run by putting their name in it mentioned inside docker-compose.yml
+```
+
+- NOTE: need to update the rollabar section in the app.py of backend-flask or else the app won't stop because some function are depricated in flask 2.2 
+
+``` "./backend-flask/app.py | Line-86"
+# @app.before_first_request | old method which doesn't work in flask 2.2 now (depricated)
+with app.app_context():
+  def init_rollbar():
+      """init rollbar module"""
+      rollbar.init(
+          # access token
+          rollbar_access_token,
+          # environment name
+          'production',
+          # server root directory, makes tracebacks prettier
+          root=os.path.dirname(os.path.realpath(__file__)),
+          # flask already sets up logging
+          allow_logging_basic_config=False)
+
+      # send exceptions from `app` to rollbar, using flask's signal system.
+      got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+```
+- after this run the backend url in the new tab of browser and hit the endpoint /api/health-check to see if the app is working or not.
+![result of ecr-python-app-run-test](../_docs/assets/ecr-python-app-run-test.JPG)
+
+- Now we are going to build our backend-flask image by running following commands:
+
+``` "run following commands in cli to build backend-flask repository"
+- To Create Repo in ECR
+aws ecr create-repository \
+  --repository-name backend-flask \
+  --image-tag-mutability MUTABLE
+
+- To set Env Var
+export ECR_BACKEND_FLASK_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/backend-flask"
+
+echo $ECR_BACKEND_FLASK_URL
+
+-to Build Image
+docker build -t backend-flask .
+
+- To Tag Image
+docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
+
+- To push image to ECR
+docker push $ECR_BACKEND_FLASK_URL:latest
+```
+![result of backend-flask-repo-build-push-result](../_docs/assets/backend-flask-repo-build-push-result.JPG)
+
+- Note: we deleted our previously created 'cruddur/fargate-cluster' cloudwatch log group and again made 'cruddur' log group
 
