@@ -24,7 +24,7 @@ except psycopg.Error as e:
 finally:
   conn.close()
 ```
-![result of bin-rds-test-confirmation](../_docs/assets/bin-rds-test-confirmation.JPG)
+![result of bin-rds-test-confirmation](../_docs/assets/bin-rds-test-confirmation.jpg)
 
 - after that we are going to run our security rule group script and and run our above test script and it will show success message.
 
@@ -68,7 +68,7 @@ except Exception as e:
 aws logs create-log-group --log-group-name "/cruddur/fargate-cluster"
 aws logs put-retention-policy --log-group-name "/cruddur/fargate-cluster" --retention-in-days 1
 ```
-![result of cloud-watch-log-confirmation](../_docs/assets/cloud-watch-log.JPG)
+![result of cloud-watch-log-confirmation](../_docs/assets/cloud-watch-log.jpg)
 
 - We will create our ECS (Amazon Elastic Container Service) by running following CLI Commands
 
@@ -77,9 +77,9 @@ aws ecs create-cluster \
 --cluster-name cruddur \
 --service-connect-defaults namespace=cruddur
 ```
-![result of ecs-creation-confirmation](../_docs/assets/ecs-creation-confirmation.JPG)
+![result of ecs-creation-confirmation](../_docs/assets/ecs-creation-confirmation.jpg)
 
-![result of aws-dashboard-ecs-result](../_docs/assets/aws-dashboard-ecs-result.JPG)
+![result of aws-dashboard-ecs-result](../_docs/assets/aws-dashboard-ecs-result.jpg)
 
 - Now we are going to create our ECR (Amazon Elastic Container Registry) for our containers.
 - Note: Instead of pulling python or node image directly from the docker registry we are going to push them to our ECR Repo because sometimes docker registry is going to give us error e.g. your pulling this image-name too many etc
@@ -91,8 +91,8 @@ aws ecr create-repository \
   --repository-name cruddur-python \
   --image-tag-mutability MUTABLE
 ```
-![result of python-baseimage-ecr-confirmation](../_docs/assets/python-baseimage-ecr-confirmation.JPG)
-![result of ecr-python-repo-aws-dashboard](../_docs/assets/ecr-python-repo-aws-dashboard.JPG)
+![result of python-baseimage-ecr-confirmation](../_docs/assets/python-baseimage-ecr-confirmation.jpg)
+![result of ecr-python-repo-aws-dashboard](../_docs/assets/ecr-python-repo-aws-dashboard.jpg)
 
 
 - After that we are going to confirm from aws dashboard that our repo for python image is created or note. 
@@ -118,7 +118,7 @@ docker push $ECR_PYTHON_URL:3.10-slim-buster
 
 - NOTE: before pushing the image we need to go AWS ECR dashboard > Repositories > Repo Name (cruddur-python) > View Push Commands > Copy the Login credentials so you are able to push your repo or else it would end up giving you error "no basic auth credential".
 
-![result of ecr-python-image-push-result](../_docs/assets/ecr-python-image-push-result.JPG)
+![result of ecr-python-image-push-result](../_docs/assets/ecr-python-image-push-result.jpg)
 
 - we are going to update our dockerfile for backend-flask app so it can pull the python image from ECR
 
@@ -160,7 +160,7 @@ with app.app_context():
       got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 ```
 - after this run the backend url in the new tab of browser and hit the endpoint /api/health-check to see if the app is working or not.
-![result of ecr-python-app-run-test](../_docs/assets/ecr-python-app-run-test.JPG)
+![result of ecr-python-app-run-test](../_docs/assets/ecr-python-app-run-test.jpg)
 
 - Now we are going to build our backend-flask image by running following commands:
 
@@ -184,7 +184,30 @@ docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
 - To push image to ECR
 docker push $ECR_BACKEND_FLASK_URL:latest
 ```
-![result of backend-flask-repo-build-push-result](../_docs/assets/backend-flask-repo-build-push-result.JPG)
+![result of backend-flask-repo-build-push-result](../_docs/assets/backend-flask-repo-build-push-result.jpg)
 
 - Note: we deleted our previously created 'cruddur/fargate-cluster' cloudwatch log group and again made 'cruddur' log group
 
+- We will create a new file in aws/policies/service-execution-policy.json file
+
+``` "aws/policies/service-execution-policy.json"
+{
+  "Version":"2012-10-17",
+  "Statement":[{
+    "Action":["sts:AssumeRole"],
+    "Effect":"Allow",
+    "Principal":{
+      "Service":["ecs-tasks.amazonaws.com"]
+    }
+  }]
+}
+```
+
+- after that run the cli command to create iam role
+
+``` "run this command in cli but need to make sure you base folder"
+aws iam create-role \
+    --role-name CruddurServiceExecutionRole \
+    --assume-role-policy-document file://aws/policies/service-execution-policy.json
+```
+![result of iam-role-ecs-task](../_docs/assets/iam-role-ecs-task.jpg)
