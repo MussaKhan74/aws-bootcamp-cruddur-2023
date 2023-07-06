@@ -421,3 +421,15 @@ aws ecs list-tasks --cluster cluster-name
 ![result of postgresql-sg-update-for-ecs-backend-flask.jpg](../_docs/assets/postgresql-sg-update-for-ecs-backend-flask.jpg)
 
 ![result of test-db-connection-inside-ecs-backend-result.jpg](../_docs/assets/test-db-connection-inside-ecs-backend-result.jpg)
+
+- after that we are going to create our load balancer for our backend-flask container for which we need to create seperate security group and need to change the inbound rule for both's sg of load balancer and backend-flask container. We also need to specify the target group for it and also included our frontend target group in it.
+
+![result of cruddur-alb-sg.png](../_docs/assets/cruddur-alb-sg.png)
+
+![result of ecs-backend-flask-sg.png](../_docs/assets/ecs-backend-flask-sg.png)
+
+![result of alb-target-group-1.png](../_docs/assets/alb-target-group-1.png)
+
+![result of ealb-target-group-2.png](../_docs/assets/alb-target-group-2.png)
+
+![result of backend-flask-alb.png](../_docs/assets/backend-flask-alb.png)
