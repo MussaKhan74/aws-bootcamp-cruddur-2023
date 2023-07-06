@@ -433,3 +433,195 @@ aws ecs list-tasks --cluster cluster-name
 ![result of ealb-target-group-2.png](../_docs/assets/alb-target-group-2.png)
 
 ![result of backend-flask-alb.png](../_docs/assets/backend-flask-alb.png)
+
+- we are going to delete the backend-service from cruddur cluster and update the "aws/json/service-backend-flask.json" and include the load balancer in it.
+
+```"updated "aws/json/service-backend-flask.json" | Line 7 - 13"
+"loadBalancers": [
+      {
+        "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:297477473306:targetgroup/cruddur-backend-flask-tg/d5805ea6cc6f1106",
+        "containerName": "backend-flask",
+        "containerPort": 4567
+      }
+    ],
+```
+
+- Now after the creation of service withh load balancer if we go to our load balancer we will see that listeners are not working for which we need to update our security group for it to work.
+
+![result of alb-listeners-not-working.png](../_docs/assets/alb-listeners-not-working.png)
+
+![result of updated-alb-sg-temp.png](../_docs/assets/updated-alb-sg-temp.png)
+
+- Note: Make sure to update the port of last rule to 3000 not 4567 as above or else it will through error and won't let you update the security group
+- after updating our alb security we are going to hit our alb dns url to check if it is working or not.
+
+![result of alb-dns-url-resutl.JPG](../_docs/assets/alb-dns-url-resutl.jpg)
+
+- creating new prod docker file for frontend
+
+``` "dockerFile.prod"
+# Base Image ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FROM node:16.18 AS build
+
+ARG REACT_APP_BACKEND_URL
+ARG REACT_APP_AWS_PROJECT_REGION
+ARG REACT_APP_AWS_COGNITO_REGION
+ARG REACT_APP_AWS_USER_POOLS_ID
+ARG REACT_APP_CLIENT_ID
+
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+ENV REACT_APP_AWS_PROJECT_REGION=$REACT_APP_AWS_PROJECT_REGION
+ENV REACT_APP_AWS_COGNITO_REGION=$REACT_APP_AWS_COGNITO_REGION
+ENV REACT_APP_AWS_USER_POOLS_ID=$REACT_APP_AWS_USER_POOLS_ID
+ENV REACT_APP_CLIENT_ID=$REACT_APP_CLIENT_ID
+
+COPY . ./frontend-react-js
+WORKDIR /frontend-react-js
+RUN npm install
+RUN npm run build
+
+# New Base Image ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FROM nginx:1.23.3-alpine
+
+# --from build is coming from the Base Image
+COPY --from=build /frontend-react-js/build /usr/share/nginx/html
+COPY --from=build /frontend-react-js/nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 3000 
+
+```
+
+
+- build frontend docker image
+
+``` "run in cli"
+docker build \
+  --build-arg REACT_APP_BACKEND_URL="alb-dns-url:4567" \
+  --build-arg REACT_APP_AWS_PROJECT_REGION="$AWS_DEFAULT_REGION" \
+  --build-arg REACT_APP_AWS_COGNITO_REGION="$AWS_DEFAULT_REGION" \
+  --build-arg REACT_APP_AWS_USER_POOLS_ID="" \
+  --build-arg REACT_APP_CLIENT_ID="" \
+  -t frontend-react-js \
+  -f Dockerfile.prod \
+  . 
+```
+
+- create frontend container service file
+
+``` "aws/json/service-frontend-react-js.json"
+{
+    "cluster": "cruddur",
+    "launchType": "FARGATE",
+    "desiredCount": 1,
+    "enableECSManagedTags": true,
+    "enableExecuteCommand": true,
+    "loadBalancers": [
+        {
+          "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:297477473306:targetgroup/cruddur-frontend-react-js/d33fb518b3a58bf5",
+          "containerName": "frontend-react-js",
+          "containerPort": 3000
+        }
+      ],
+    "networkConfiguration": {
+      "awsvpcConfiguration": {
+        "assignPublicIp": "ENABLED",
+        "securityGroups": [
+          "sg-0959728512f67c431"
+        ],
+        "subnets": [
+            "subnet-04607971bbfe2f66b",
+            "subnet-0de09606f16785dfc",
+            "subnet-00a02a7e6f77d7962",
+            "subnet-0d278ac4e9f4f5461",
+            "subnet-0c5d600ed1f87a92e",
+            "subnet-0f7192b57c5eb1bb3"
+          ]
+      }
+    },
+    "propagateTags": "SERVICE",
+    "serviceName": "frontend-react-js",
+    "taskDefinition": "frontend-react-js",
+    "serviceConnectConfiguration": {
+      "enabled": true,
+      "namespace": "cruddur",
+      "services": [
+        {
+          "portName": "frontend-react-js",
+          "discoveryName": "frontend-react-js",
+          "clientAliases": [{"port": 3000}]
+        }
+      ]
+    }
+  }
+```
+- create task-definition for frontend
+
+``` "aws/task-definition"
+{
+    "family": "frontend-react-js",
+    "executionRoleArn": "arn:aws:iam::297477473306:role/CruddurServiceExecutionRole",
+    "taskRoleArn": "arn:aws:iam::297477473306:role/CruddurTaskRole",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+      {
+        "name": "frontend-react-js",
+        "image": "BACKEND_FLASK_IMAGE_URL",
+        "cpu": 256,
+        "memory": 256,
+        "essential": true,
+        "portMappings": [
+          {
+            "name": "frontend-react-js",
+            "containerPort": 3000,
+            "protocol": "tcp", 
+            "appProtocol": "http"
+          }
+        ],
+  
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+              "awslogs-group": "cruddur",
+              "awslogs-region": "us-east-1",
+              "awslogs-stream-prefix": "frontend-react"
+          }
+        }
+      }
+    ]
+  }
+```
+- make sure to run this to login for ecr before pusing the docker image
+
+``` 'run in cli'
+aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+
+```
+- tag frontend image
+
+``` "run in cli"
+docker tag frontend-react-js:latest $ECR_FRONTEND_REACT_URL:latest
+```
+
+- NOTE : make sure you login and create the repository by running
+
+```"run in cli"
+aws ecr create-repository \
+  --repository-name frontend-react-js \
+  --image-tag-mutability MUTABLE
+
+```
+- push frontend image
+
+```"run in cli"
+docker push $ECR_FRONTEND_REACT_URL:latest
+```
+
+- after all that we will create the task definition and service for the cluster of ECS to run our frontend-react-js
+
+```"run this commands in cli to create task-definition and service"
+TO CREATE TASK-DEFINITION
+aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
+
+TO CREATE SERVICE
+aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
+```
