@@ -339,3 +339,85 @@ aws ec2 authorize-security-group-ingress \
 ```
 ![result of backend-flask-ecs-running.jpg](../_docs/assets/backend-flask-ecs-running.jpg)
 
+- Note: Because we want to connect to our ecs from our local shell which was giving us error in the start to do that we create a service "aws/service-backend-flask.json" file by which we will create our ecs service from cli.
+
+``` "created a new file 'aws/service-backend-flask.json"
+{
+    "cluster": "cruddur",
+    "launchType": "FARGATE",
+    "desiredCount": 1,
+    "enableECSManagedTags": true,
+    "enableExecuteCommand": true,
+    "networkConfiguration": {
+      "awsvpcConfiguration": {
+        "assignPublicIp": "ENABLED",
+        "securityGroups": [
+          "sg-0959728512f67c431"
+        ],
+        "subnets": [
+          "subnet-04607971bbfe2f66b",
+          "subnet-0de09606f16785dfc",
+          "subnet-00a02a7e6f77d7962",
+          "subnet-0d278ac4e9f4f5461",
+          "subnet-0c5d600ed1f87a92e",
+          "subnet-0f7192b57c5eb1bb3"
+        ]
+      }
+    },
+    "propagateTags": "SERVICE",
+    "serviceName": "backend-flask",
+    "taskDefinition": "backend-flask",
+    "serviceConnectConfiguration": {
+      "enabled": true,
+      "namespace": "cruddur",
+      "services": [
+        {
+          "portName": "backend-flask",
+          "discoveryName": "backend-flask",
+          "clientAliases": [{"port": 4567}]
+        }
+      ]
+    }
+  }
+```
+
+``` "run the following command to create the service in ecs cluster"
+aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
+```
+- Note: if you are trying to create a new service while there is already an service with same name is created it will through an error in cli or your service is not completely drained out
+
+![result of ecs-cluster-service-result.jpg](../_docs/assets/ecs-cluster-service-result.jpg)
+
+- Note: we can run the in cli to manually access shell of our backend container
+
+``` "run this in cli to access shell of backend-container in iteractive mode"
+
+aws ecs execute-command  \
+--region $AWS_DEFAULT_REGION \
+--cluster cluster-name \
+--task task-id \
+--container container-name \
+--command "/bin/bash" \
+--interactive
+```
+
+- Note: To list task which are running in our clusters
+
+``` "run this in cli to see running tasks arns"
+
+aws ecs list-tasks --cluster cluster-name
+```
+
+- if we try to visit the link of our container ip address and open it in the browser and it won't work because we want to hit that url on port: 4567 but by default it is set to port: 80
+- for that we will go to EC2 > Security Group > container-security-group > Inbound-rules > Edit > Remove Port: 80 and add Port:4567
+
+![result of opening-port-backend-flask.jpg](../_docs/assets/opening-port-backend-flask.jpg)
+
+![result of backend-container-url-result.jpg](../_docs/assets/backend-container-url-result.jpg)
+
+
+- We will not update the security group of the RDS (PostgreSQL) so we can connect our backend ecs to db
+
+![result of postgresql-sg-update-for-ecs-backend-flask.jpg](../_docs/assets/postgresql-sg-update-for-ecs-backend-flask.jpg)
+
+![result of test-db-connection-inside-ecs-backend-result.jpg](../_docs/assets/test-db-connection-inside-ecs-backend-result.jpg)
