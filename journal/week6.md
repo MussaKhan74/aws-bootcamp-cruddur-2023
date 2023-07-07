@@ -625,3 +625,9 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/fr
 TO CREATE SERVICE
 aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
 ```
+
+- NOTE: Updated our security group rule for the ecs and added inbound rule for port: 3000 for the alb.
+
+![result of sg-update-frontend-container.JPG](../_docs/
+assets/sg-update-frontend-container.jpg)
+
